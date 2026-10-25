@@ -49,11 +49,7 @@ npm run test:e2e              # Playwright (app + banco rodando; rode `npx playw
 
 Hash bcrypt (custo 12) · sessão JWT de 7 dias · isolamento por `userId` em todas as consultas · validação Zod no servidor ·
 idempotência por `idempotencyKey` · pagamento atômico (`updateMany` condicionado a `PENDING`) · trilha de auditoria ·
-cabeçalhos de segurança · ID tokens Firebase verificados no servidor · erros sem stack trace.
-
-## Login Firebase
-
-No Firebase Console, ative o provedor **Google** em **Authentication → Sign-in method**. Em **Authentication → Settings → Authorized domains**, cadastre o domínio de produção e `localhost` para desenvolvimento. O servidor valida o ID token do Firebase e cria a sessão usada pelas APIs e pelos dados Prisma.
+cabeçalhos de segurança · erros sem stack trace.
 
 ## API (implementada)
 

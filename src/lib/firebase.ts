@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
 
 // Configuração do Firebase com variáveis de ambiente e fallback
@@ -27,7 +26,6 @@ export const firebaseConfig = {
 // Inicializa o Firebase apenas uma vez (evita múltiplas instâncias no Next.js)
 export const app =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-export const firebaseAuth = getAuth(app);
 
 // Analytics só funciona no ambiente do navegador (cliente)
 let analytics: Analytics | null = null;

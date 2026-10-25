@@ -4,21 +4,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut as firebaseSignOut,
-} from "firebase/auth";
 import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
-import { firebaseAuth } from "@/lib/firebase";
-import { establishAppSession } from "@/lib/firebase-session";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Recupera o último e-mail gravado no dispositivo
@@ -57,22 +49,6 @@ export default function LoginPage() {
     } catch {
       setError("Erro ao tentar entrar no sistema. Tente novamente.");
       setLoading(false);
-    }
-  }
-
-  async function onGoogleSignIn() {
-    setGoogleLoading(true);
-    setError(null);
-    try {
-      const result = await signInWithPopup(
-        firebaseAuth,
-        new GoogleAuthProvider(),
-      );
-      await establishAppSession(result.user);
-    } catch {
-      await firebaseSignOut(firebaseAuth).catch(() => undefined);
-      setError("Não foi possível entrar com o Google. Tente novamente.");
-      setGoogleLoading(false);
     }
   }
 
@@ -173,31 +149,10 @@ export default function LoginPage() {
         <button
           type="submit"
           className="btn w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 font-semibold py-2.5 rounded-xl transition-all"
-          disabled={loading || googleLoading}
+          disabled={loading}
         >
           {loading ? "Entrando no sistema…" : "Acessar minha conta"}
           <ArrowRight className="h-4 w-4 ml-1.5" />
-        </button>
-
-        <div className="flex items-center gap-3 py-1 text-[11px] font-medium text-slate-400">
-          <span className="h-px flex-1 bg-slate-200" />
-          <span>ou</span>
-          <span className="h-px flex-1 bg-slate-200" />
-        </div>
-
-        <button
-          type="button"
-          onClick={onGoogleSignIn}
-          className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={loading || googleLoading}
-        >
-          <span
-            aria-hidden="true"
-            className="text-base font-bold text-blue-600"
-          >
-            G
-          </span>
-          {googleLoading ? "Conectando ao Google…" : "Continuar com Google"}
         </button>
       </form>
 
