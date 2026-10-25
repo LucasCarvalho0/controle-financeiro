@@ -53,9 +53,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto mt-6 mb-12 max-w-sm px-4">
+    <main className="mx-auto mt-4 mb-8 max-w-sm px-4 sm:mt-6 sm:mb-12">
       {/* Logo e Cabeçalho Oficial do Sistema */}
-      <div className="mb-8 text-center flex flex-col items-center">
+      <div className="mb-6 text-center flex flex-col items-center sm:mb-8">
         <div className="relative mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 p-1 shadow-lg shadow-blue-500/20 ring-4 ring-blue-50">
           <Image
             src="/icons/icon.png"
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
       <form
         onSubmit={onSubmit}
-        className="card space-y-4 shadow-md border-slate-200/90 bg-white/95 backdrop-blur p-6 rounded-2xl"
+        className="card space-y-4 shadow-md border-slate-200/90 bg-white/95 backdrop-blur p-5 rounded-2xl sm:p-6"
       >
         <div>
           <label
@@ -96,11 +96,11 @@ export default function LoginPage() {
               placeholder="seuemail@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input !pl-9 font-medium text-sm"
+              className="input !pl-9 font-medium text-sm placeholder:font-normal placeholder:text-slate-500"
             />
           </div>
           {email && (
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-xs text-slate-500">
               E-mail memorizado no seu dispositivo.
             </p>
           )}
@@ -127,12 +127,12 @@ export default function LoginPage() {
               placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input !pl-9 !pr-10 font-medium text-sm"
+              className="input !pl-9 !pr-10 font-medium text-sm placeholder:font-normal placeholder:text-slate-500"
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-2 flex items-center p-1 text-slate-400 hover:text-slate-700"
+              className="absolute inset-y-0 right-2 flex items-center p-1 text-slate-500 hover:text-slate-800"
               aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -156,7 +156,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-6 text-center space-y-3">
+      <div className="mt-5 text-center space-y-3 sm:mt-6">
         <p className="text-sm text-slate-600">
           Ainda não possui uma conta?{" "}
           <Link
@@ -167,7 +167,7 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
           <ShieldCheck size={13} className="text-emerald-500" />
           <span>Acesso criptografado e seguro</span>
         </div>
