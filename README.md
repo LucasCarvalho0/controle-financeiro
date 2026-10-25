@@ -19,13 +19,13 @@ npm run test:e2e              # Playwright (app + banco rodando; rode `npx playw
 
 ## Variáveis de ambiente
 
-| Variável                                 | Como obter                                                                                                                                            |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`, `DIRECT_URL`             | Crie um projeto no Supabase/Neon e copie as strings de conexão (a direta é usada nas migrações).                                                      |
-| `AUTH_SECRET`                            | `npx auth secret` ou `openssl rand -base64 32`                                                                                                        |
-| `GOOGLE_CLIENT_ID/SECRET`                | Google Cloud Console → Credenciais → ID do cliente OAuth. Redirect: `http://localhost:3000/api/auth/callback/google` (e a URL da Vercel em produção). |
-| `RESEND_API_KEY`, `EMAIL_FROM`           | resend.com → API Keys; verifique seu domínio. (Ainda não usado: recuperação de senha é Fase 1 pendente.)                                              |
-| `NEXT_PUBLIC_API_KEY`, `API_PRIVATE_KEY` | Chaves públicas e privadas para integrações de API; mantenha a pública em cliente e a privada somente no servidor.                                    |
+| Variável                                 | Como obter                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`, `DIRECT_URL`             | Crie um projeto no Supabase/Neon e copie as strings de conexão (a direta é usada nas migrações).                   |
+| `AUTH_SECRET`                            | `npx auth secret` ou `openssl rand -base64 32`                                                                     |
+| `NEXT_PUBLIC_FIREBASE_*`                 | Firebase Console → Configurações do projeto → Seus apps → configuração do SDK Web.                                 |
+| `RESEND_API_KEY`, `EMAIL_FROM`           | resend.com → API Keys; verifique seu domínio. (Ainda não usado: recuperação de senha é Fase 1 pendente.)           |
+| `NEXT_PUBLIC_API_KEY`, `API_PRIVATE_KEY` | Chaves públicas e privadas para integrações de API; mantenha a pública em cliente e a privada somente no servidor. |
 
 ## Publicação na Vercel
 
@@ -49,7 +49,11 @@ npm run test:e2e              # Playwright (app + banco rodando; rode `npx playw
 
 Hash bcrypt (custo 12) · sessão JWT de 7 dias · isolamento por `userId` em todas as consultas · validação Zod no servidor ·
 idempotência por `idempotencyKey` · pagamento atômico (`updateMany` condicionado a `PENDING`) · trilha de auditoria ·
-cabeçalhos de segurança · Google **sem** vínculo automático por e-mail (evita sequestro de conta) · erros sem stack trace.
+cabeçalhos de segurança · ID tokens Firebase verificados no servidor · erros sem stack trace.
+
+## Login Firebase
+
+No Firebase Console, ative o provedor **Google** em **Authentication → Sign-in method**. Em **Authentication → Settings → Authorized domains**, cadastre o domínio de produção e `localhost` para desenvolvimento. O servidor valida o ID token do Firebase e cria a sessão usada pelas APIs e pelos dados Prisma.
 
 ## API (implementada)
 
