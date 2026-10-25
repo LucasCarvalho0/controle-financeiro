@@ -2,11 +2,19 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { z } from "zod";
 import { prisma } from "./prisma";
-import { adminAuth } from "./firebase-admin";
 import { rateLimit } from "./rate-limit";
 import { ensureDefaultCategories } from "@/server/services/default-categories";
+
+const firebaseProjectId =
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "controle-financeiro-52cf1";
+const firebaseSigningKeys = createRemoteJWKSet(
+  new URL(
+    "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com",
+  ),
+);
 
 const credentialsSchema = z.object({
   email: z
@@ -52,25 +60,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: { idToken: {} },
       async authorize(raw) {
         const parsed = firebaseTokenSchema.safeParse(raw);
-        if (!parsed.success || !adminAuth) return null;
+        if (!parsed.success) return null;
 
-        let decoded;
+        let email: string | undefined;
+        let name: string | null = null;
+        let image: string | null = null;
         try {
-          decoded = await adminAuth.verifyIdToken(parsed.data.idToken);
+          const { payload } = await jwtVerify(
+            parsed.data.idToken,
+            firebaseSigningKeys,
+            {
+              issuer: `https://securetoken.google.com/${firebaseProjectId}`,
+              audience: firebaseProjectId,
+            },
+          );
+          email =
+            typeof payload.email === "string"
+              ? payload.email.trim().toLowerCase()
+              : undefined;
+          if (payload.email_verified !== true) return null;
+          name = typeof payload.name === "string" ? payload.name : null;
+          image = typeof payload.picture === "string" ? payload.picture : null;
         } catch {
           return null;
         }
 
-        const email = decoded.email?.trim().toLowerCase();
-        if (!email || decoded.email_verified !== true) return null;
+        if (!email) return null;
         if (!rateLimit(`firebase-login:${email}`, 25, 15 * 60_000)) return null;
 
         const user = await prisma.user.upsert({
           where: { email },
           create: {
             email,
-            name: decoded.name ?? null,
-            image: decoded.picture ?? null,
+            name,
+            image,
           },
           update: {},
         });
