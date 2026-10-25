@@ -96,7 +96,15 @@ export default function CadastroPage() {
 
       if (!res.ok) {
         const j = await res.json().catch(() => null);
-        setError(j?.error?.message ?? "Não foi possível realizar o cadastro.");
+        const errorMsg =
+          j?.error?.message ||
+          j?.message ||
+          (res.status === 409
+            ? "Este e-mail já está cadastrado no sistema."
+            : res.status === 429
+            ? "Muitas tentativas. Por favor, aguarde alguns instantes."
+            : "Não foi possível realizar o cadastro no momento. Tente novamente.");
+        setError(errorMsg);
         setLoading(false);
         return;
       }
@@ -293,8 +301,17 @@ export default function CadastroPage() {
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="rounded-lg bg-rose-50 p-2.5 text-xs font-medium text-rose-700 border border-rose-200">
-            ⚠ {error}
+          <div className="rounded-lg bg-rose-50 p-3 text-xs font-medium text-rose-700 border border-rose-200">
+            <div className="flex items-center gap-1.5">
+              <span>⚠ {error}</span>
+            </div>
+            {error.includes("já está cadastrado") && (
+              <div className="mt-2 pt-2 border-t border-rose-200">
+                <Link href="/login" className="font-bold underline text-blue-700 hover:text-blue-900 block">
+                  Já possui conta? Clique aqui para fazer Login →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
