@@ -39,7 +39,12 @@ interface Tx {
   notes?: string | null;
   accountId?: string | null;
   categoryId?: string | null;
-  category?: { id?: string; name: string; color?: string; icon?: string | null } | null;
+  category?: {
+    id?: string;
+    name: string;
+    color?: string;
+    icon?: string | null;
+  } | null;
   account?: { id?: string; name: string; color?: string } | null;
 }
 
@@ -105,7 +110,11 @@ export function TransactionsView({ kind }: { kind: Kind }) {
   const isExpense = kind === "EXPENSE";
 
   const [items, setItems] = useState<Tx[]>([]);
-  const [allMonthTxs, setAllMonthTxs] = useState<{ incomes: number; expenses: number; baseBalance: number }>({
+  const [allMonthTxs, setAllMonthTxs] = useState<{
+    incomes: number;
+    expenses: number;
+    baseBalance: number;
+  }>({
     incomes: 0,
     expenses: 0,
     baseBalance: 0,
@@ -130,7 +139,11 @@ export function TransactionsView({ kind }: { kind: Kind }) {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    defaultValues: { status: "PENDING", transactionDate: today(), dueDate: today() },
+    defaultValues: {
+      status: "PENDING",
+      transactionDate: today(),
+      dueDate: today(),
+    },
   });
 
   // Form de edição
@@ -182,7 +195,10 @@ export function TransactionsView({ kind }: { kind: Kind }) {
       if (accRes.ok) {
         const accs: Opt[] = await accRes.json();
         setAccounts(accs);
-        baseBalance = accs.reduce((sum, a) => sum + Number(a.initialBalance ?? 0), 0);
+        baseBalance = accs.reduce(
+          (sum, a) => sum + Number(a.initialBalance ?? 0),
+          0,
+        );
       }
 
       setAllMonthTxs({ incomes, expenses, baseBalance });
@@ -208,18 +224,28 @@ export function TransactionsView({ kind }: { kind: Kind }) {
     // Total das despesas listadas não canceladas
     const activeItems = items.filter((i) => i.status !== "CANCELLED");
     const totalList = activeItems.reduce((acc, i) => acc + Number(i.amount), 0);
-    const paidList = activeItems.filter((i) => i.status === "PAID").reduce((acc, i) => acc + Number(i.amount), 0);
-    const pendingList = activeItems.filter((i) => i.status === "PENDING").reduce((acc, i) => acc + Number(i.amount), 0);
+    const paidList = activeItems
+      .filter((i) => i.status === "PAID")
+      .reduce((acc, i) => acc + Number(i.amount), 0);
+    const pendingList = activeItems
+      .filter((i) => i.status === "PENDING")
+      .reduce((acc, i) => acc + Number(i.amount), 0);
 
     // Se for tela de Despesas:
     // O total de receitas do mês ou saldo inicial de caixa é a base.
     // Conforme o usuário adiciona despesa, o saldo restante diminui automaticamente!
-    const incomeBase = allMonthTxs.incomes > 0 ? allMonthTxs.incomes : allMonthTxs.baseBalance;
-    const currentExpenses = isExpense ? Math.max(totalList, allMonthTxs.expenses) : allMonthTxs.expenses;
-    const currentIncomes = !isExpense ? Math.max(totalList, allMonthTxs.incomes) : allMonthTxs.incomes;
+    const incomeBase =
+      allMonthTxs.incomes > 0 ? allMonthTxs.incomes : allMonthTxs.baseBalance;
+    const currentExpenses = isExpense
+      ? Math.max(totalList, allMonthTxs.expenses)
+      : allMonthTxs.expenses;
+    const currentIncomes = !isExpense
+      ? Math.max(totalList, allMonthTxs.incomes)
+      : allMonthTxs.incomes;
 
     // Saldo restante que vai diminuindo
-    const remainingBalance = (incomeBase > 0 ? incomeBase : currentIncomes) - currentExpenses;
+    const remainingBalance =
+      (incomeBase > 0 ? incomeBase : currentIncomes) - currentExpenses;
 
     // Percentual de comprometimento
     let percentage = 0;
@@ -232,7 +258,8 @@ export function TransactionsView({ kind }: { kind: Kind }) {
     // Diagnóstico da situação
     let statusLevel: "BOA" | "MODERADA" | "CRITICA" = "BOA";
     let statusTitle = "Situação Boa (Controlada)";
-    let statusMessage = "Suas despesas estão sob controle e dentro da margem segura do mês!";
+    let statusMessage =
+      "Suas despesas estão sob controle e dentro da margem segura do mês!";
     let statusClass = "bg-emerald-50 border-emerald-300 text-emerald-900";
     let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
     let progressColor = "bg-emerald-500";
@@ -240,14 +267,16 @@ export function TransactionsView({ kind }: { kind: Kind }) {
     if (percentage > 90 || remainingBalance < 0) {
       statusLevel = "CRITICA";
       statusTitle = "Situação Extremamente Crítica!";
-      statusMessage = "Ó, tem que rever isso daí, sua situação tá extremamente crítica nesse mês!";
+      statusMessage =
+        "Ó, tem que rever isso daí, sua situação tá extremamente crítica nesse mês!";
       statusClass = "bg-rose-50 border-rose-300 text-rose-950 shadow-sm";
       badgeClass = "bg-rose-100 text-rose-800 border-rose-300 animate-pulse";
       progressColor = "bg-rose-600";
     } else if (percentage >= 70) {
       statusLevel = "MODERADA";
       statusTitle = "Situação Moderada (Atenção)";
-      statusMessage = "Atenção: seus gastos já atingiram a faixa de alerta. Evite despesas supérfluas!";
+      statusMessage =
+        "Atenção: seus gastos já atingiram a faixa de alerta. Evite despesas supérfluas!";
       statusClass = "bg-amber-50 border-amber-300 text-amber-950";
       badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
       progressColor = "bg-amber-500";
@@ -274,7 +303,8 @@ export function TransactionsView({ kind }: { kind: Kind }) {
   // Criação de lançamento
   async function onSubmit(v: FormValues) {
     const amount = parseMoneyInput(v.amount);
-    if (!amount) return setMsg({ ok: false, text: "Informe um valor numérico válido." });
+    if (!amount)
+      return setMsg({ ok: false, text: "Informe um valor numérico válido." });
 
     const body = {
       type: kind,
@@ -296,19 +326,36 @@ export function TransactionsView({ kind }: { kind: Kind }) {
     });
 
     if (res.ok) {
-      setMsg({ ok: true, text: `Lançamento de ${t.singular} salvo com sucesso! O valor foi atualizado no saldo.` });
-      reset({ status: "PENDING", transactionDate: today(), dueDate: today(), description: "", amount: "", notes: "" });
+      setMsg({
+        ok: true,
+        text: `Lançamento de ${t.singular} salvo com sucesso! O valor foi atualizado no saldo.`,
+      });
+      reset({
+        status: "PENDING",
+        transactionDate: today(),
+        dueDate: today(),
+        description: "",
+        amount: "",
+        notes: "",
+      });
       void load();
       void loadMonthSummary();
     } else {
       const err = await res.json();
-      setMsg({ ok: false, text: err.error?.message ?? "Erro ao salvar lançamento." });
+      setMsg({
+        ok: false,
+        text: err.error?.message ?? "Erro ao salvar lançamento.",
+      });
     }
   }
 
   // Ações rápidas de status (pay, unpay, cancel)
   async function act(id: string, action: "pay" | "cancel" | "unpay") {
-    if (action === "cancel" && !confirm("Deseja realmente cancelar este lançamento?")) return;
+    if (
+      action === "cancel" &&
+      !confirm("Deseja realmente cancelar este lançamento?")
+    )
+      return;
 
     const res = await fetch(`/api/transactions/${id}`, {
       method: "PATCH",
@@ -318,7 +365,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
 
     if (res.ok) {
       const texts = {
-        pay: isExpense ? "Conta marcada como paga!" : "Receita marcada como recebida!",
+        pay: isExpense
+          ? "Conta marcada como paga!"
+          : "Receita marcada como recebida!",
         unpay: "Lançamento retornado para pendente.",
         cancel: "Lançamento cancelado.",
       };
@@ -327,7 +376,12 @@ export function TransactionsView({ kind }: { kind: Kind }) {
       void loadMonthSummary();
       // Atualiza também o modal se estiver aberto
       if (viewTx && viewTx.id === id) {
-        const newStatus = action === "pay" ? "PAID" : action === "unpay" ? "PENDING" : "CANCELLED";
+        const newStatus =
+          action === "pay"
+            ? "PAID"
+            : action === "unpay"
+              ? "PENDING"
+              : "CANCELLED";
         setViewTx({ ...viewTx, status: newStatus });
       }
     } else {
@@ -425,14 +479,23 @@ export function TransactionsView({ kind }: { kind: Kind }) {
         <div
           role="status"
           className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm transition-all ${
-            msg.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-rose-200 bg-rose-50 text-rose-800"
+            msg.ok
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-rose-200 bg-rose-50 text-rose-800"
           }`}
         >
           <span className="flex items-center gap-2 font-medium">
-            {msg.ok ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <AlertTriangle className="h-5 w-5 text-rose-600" />}
+            {msg.ok ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 text-rose-600" />
+            )}
             {msg.text}
           </span>
-          <button onClick={() => setMsg(null)} className="text-slate-400 hover:text-slate-600">
+          <button
+            onClick={() => setMsg(null)}
+            className="text-slate-400 hover:text-slate-600"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -441,14 +504,24 @@ export function TransactionsView({ kind }: { kind: Kind }) {
       {/* ========================================================================= */}
       {/* TERMÔMETRO & DIAGNÓSTICO DE SAÚDE FINANCEIRA DO MÊS (Pedido pelo usuário) */}
       {/* ========================================================================= */}
-      <section className={`rounded-xl border p-5 transition-all ${financialHealth.statusClass}`}>
+      <section
+        className={`rounded-xl border p-5 transition-all ${financialHealth.statusClass}`}
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider ${financialHealth.badgeClass}`}>
-                {financialHealth.statusLevel === "CRITICA" && <AlertTriangle className="h-4 w-4" />}
-                {financialHealth.statusLevel === "MODERADA" && <AlertCircle className="h-4 w-4" />}
-                {financialHealth.statusLevel === "BOA" && <ShieldCheck className="h-4 w-4" />}
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider ${financialHealth.badgeClass}`}
+              >
+                {financialHealth.statusLevel === "CRITICA" && (
+                  <AlertTriangle className="h-4 w-4" />
+                )}
+                {financialHealth.statusLevel === "MODERADA" && (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                {financialHealth.statusLevel === "BOA" && (
+                  <ShieldCheck className="h-4 w-4" />
+                )}
                 {financialHealth.statusTitle}
               </span>
               <span className="text-xs font-semibold text-slate-600">
@@ -464,15 +537,27 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               {isExpense ? (
                 financialHealth.remainingBalance >= 0 ? (
                   <>
-                    Você ainda tem <strong>{formatBRL(financialHealth.remainingBalance)}</strong> de saldo disponível neste mês. A cada nova despesa lançada, este valor diminui automaticamente.
+                    Você ainda tem{" "}
+                    <strong>
+                      {formatBRL(financialHealth.remainingBalance)}
+                    </strong>{" "}
+                    de saldo disponível neste mês. A cada nova despesa lançada,
+                    este valor diminui automaticamente.
                   </>
                 ) : (
                   <>
-                    Suas despesas ultrapassaram suas receitas em <strong>{formatBRL(Math.abs(financialHealth.remainingBalance))}</strong>. Seu saldo está negativo!
+                    Suas despesas ultrapassaram suas receitas em{" "}
+                    <strong>
+                      {formatBRL(Math.abs(financialHealth.remainingBalance))}
+                    </strong>
+                    . Seu saldo está negativo!
                   </>
                 )
               ) : (
-                <>Total de receitas registradas: <strong>{formatBRL(financialHealth.totalList)}</strong>.</>
+                <>
+                  Total de receitas registradas:{" "}
+                  <strong>{formatBRL(financialHealth.totalList)}</strong>.
+                </>
               )}
             </p>
           </div>
@@ -485,7 +570,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
             </p>
             <p
               className={`mt-1 text-2xl font-black tracking-tight ${
-                financialHealth.remainingBalance >= 0 ? "text-emerald-600" : "text-rose-600"
+                financialHealth.remainingBalance >= 0
+                  ? "text-emerald-600"
+                  : "text-rose-600"
               }`}
             >
               {formatBRL(financialHealth.remainingBalance)}
@@ -500,7 +587,14 @@ export function TransactionsView({ kind }: { kind: Kind }) {
         <div className="mt-4">
           <div className="flex justify-between text-xs font-medium text-slate-600 mb-1">
             <span>Despesas: {formatBRL(financialHealth.currentExpenses)}</span>
-            <span>Renda Base: {formatBRL(financialHealth.incomeBase > 0 ? financialHealth.incomeBase : financialHealth.currentIncomes)}</span>
+            <span>
+              Renda Base:{" "}
+              {formatBRL(
+                financialHealth.incomeBase > 0
+                  ? financialHealth.incomeBase
+                  : financialHealth.currentIncomes,
+              )}
+            </span>
           </div>
           <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200/90">
             <div
@@ -514,24 +608,44 @@ export function TransactionsView({ kind }: { kind: Kind }) {
       {/* 4 CARDS DE MÉTRICAS RÁPIDAS */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="card">
-          <p className="text-xs font-medium text-slate-500">Total de Despesas Lançadas</p>
-          <p className="mt-1 text-xl font-bold text-rose-600">{formatBRL(financialHealth.totalList)}</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">{items.length} lançamento(s)</p>
+          <p className="text-xs font-medium text-slate-500">
+            Total de Despesas Lançadas
+          </p>
+          <p className="mt-1 text-xl font-bold text-rose-600">
+            {formatBRL(financialHealth.totalList)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            {items.length} lançamento(s)
+          </p>
         </div>
         <div className="card">
           <p className="text-xs font-medium text-slate-500">Contas Já Pagas</p>
-          <p className="mt-1 text-xl font-bold text-emerald-600">{formatBRL(financialHealth.paidList)}</p>
+          <p className="mt-1 text-xl font-bold text-emerald-600">
+            {formatBRL(financialHealth.paidList)}
+          </p>
           <p className="mt-0.5 text-[11px] text-slate-500">Liquidadas</p>
         </div>
         <div className="card">
-          <p className="text-xs font-medium text-slate-500">Contas a Pagar (Pendentes)</p>
-          <p className="mt-1 text-xl font-bold text-amber-600">{formatBRL(financialHealth.pendingList)}</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">A vencer ou em aberto</p>
+          <p className="text-xs font-medium text-slate-500">
+            Contas a Pagar (Pendentes)
+          </p>
+          <p className="mt-1 text-xl font-bold text-amber-600">
+            {formatBRL(financialHealth.pendingList)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            A vencer ou em aberto
+          </p>
         </div>
         <div className="card">
-          <p className="text-xs font-medium text-slate-500">Receitas Previstas no Mês</p>
-          <p className="mt-1 text-xl font-bold text-blue-600">{formatBRL(financialHealth.currentIncomes)}</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">Base para abatimento</p>
+          <p className="text-xs font-medium text-slate-500">
+            Receitas Previstas no Mês
+          </p>
+          <p className="mt-1 text-xl font-bold text-blue-600">
+            {formatBRL(financialHealth.currentIncomes)}
+          </p>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            Base para abatimento
+          </p>
         </div>
       </section>
 
@@ -544,39 +658,67 @@ export function TransactionsView({ kind }: { kind: Kind }) {
             <Plus className="h-4 w-4 text-blue-600" />
             Novo Lançamento de {t.title.slice(0, -1)}
           </h2>
-          <span className="text-xs text-slate-500">Preencha os dados abaixo</span>
+          <span className="text-xs text-slate-500">
+            Preencha os dados abaixo
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          noValidate
+        >
           <div className="sm:col-span-2">
-            <label className="label" htmlFor="description">Descrição</label>
+            <label className="label" htmlFor="description">
+              Descrição
+            </label>
             <input
               id="description"
               placeholder="Ex: Aluguel, Supermercado, Internet..."
               className="input font-medium"
-              {...register("description", { required: "Informe a descrição do lançamento" })}
+              {...register("description", {
+                required: "Informe a descrição do lançamento",
+              })}
             />
-            {errors.description && <p className="mt-1 text-xs text-red-600">{errors.description.message}</p>}
+            {errors.description && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="label" htmlFor="amount">Valor (R$)</label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-slate-400">R$</span>
+            <label className="label" htmlFor="amount">
+              Valor (R$)
+            </label>
+            <div className="flex min-w-0 overflow-hidden rounded-lg border border-slate-300 bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
+              <span className="flex shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-600">
+                R$
+              </span>
               <input
                 id="amount"
                 inputMode="decimal"
                 placeholder="0,00"
-                className="input pl-9 font-semibold text-slate-900"
+                className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm font-semibold text-slate-900 outline-none placeholder:font-normal placeholder:text-slate-500"
                 {...register("amount", { required: "Informe o valor" })}
               />
             </div>
-            {errors.amount && <p className="mt-1 text-xs text-red-600">{errors.amount.message}</p>}
+            {errors.amount && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.amount.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="label" htmlFor="accountId">Conta Bancária / Carteira</label>
-            <select id="accountId" className="input" {...register("accountId", { required: "Selecione a conta" })}>
+            <label className="label" htmlFor="accountId">
+              Conta Bancária / Carteira
+            </label>
+            <select
+              id="accountId"
+              className="input"
+              {...register("accountId", { required: "Selecione a conta" })}
+            >
               <option value="">Selecione uma conta…</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -585,14 +727,26 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               ))}
             </select>
             {accounts.length === 0 && (
-              <p className="mt-1 text-xs text-amber-700">Cadastre uma conta em “Contas” primeiro.</p>
+              <p className="mt-1 text-xs text-amber-700">
+                Cadastre uma conta em “Contas” primeiro.
+              </p>
             )}
-            {errors.accountId && <p className="mt-1 text-xs text-red-600">{errors.accountId.message}</p>}
+            {errors.accountId && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.accountId.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="label" htmlFor="categoryId">Categoria</label>
-            <select id="categoryId" className="input" {...register("categoryId")}>
+            <label className="label" htmlFor="categoryId">
+              Categoria
+            </label>
+            <select
+              id="categoryId"
+              className="input"
+              {...register("categoryId")}
+            >
               <option value="">Sem categoria</option>
               {categories
                 .filter((c) => c.type === kind)
@@ -608,24 +762,44 @@ export function TransactionsView({ kind }: { kind: Kind }) {
             <label className="label" htmlFor="transactionDate">
               {isExpense ? "Data da Compra" : "Data do Lançamento"}
             </label>
-            <input id="transactionDate" type="date" className="input" {...register("transactionDate", { required: true })} />
+            <input
+              id="transactionDate"
+              type="date"
+              className="input"
+              {...register("transactionDate", { required: true })}
+            />
           </div>
 
           <div>
-            <label className="label" htmlFor="dueDate">Vencimento / Previsão</label>
-            <input id="dueDate" type="date" className="input" {...register("dueDate")} />
+            <label className="label" htmlFor="dueDate">
+              Vencimento / Previsão
+            </label>
+            <input
+              id="dueDate"
+              type="date"
+              className="input"
+              {...register("dueDate")}
+            />
           </div>
 
           <div>
-            <label className="label" htmlFor="status">Situação Inicial</label>
-            <select id="status" className="input font-medium" {...register("status")}>
+            <label className="label" htmlFor="status">
+              Situação Inicial
+            </label>
+            <select
+              id="status"
+              className="input font-medium"
+              {...register("status")}
+            >
               <option value="PENDING">⏳ {t.pending}</option>
               <option value="PAID">✔ {t.paid}</option>
             </select>
           </div>
 
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="label" htmlFor="notes">Observações (opcional)</label>
+            <label className="label" htmlFor="notes">
+              Observações (opcional)
+            </label>
             <input
               id="notes"
               placeholder="Ex: Parcela 2 de 5, boleto enviado por e-mail..."
@@ -649,12 +823,14 @@ export function TransactionsView({ kind }: { kind: Kind }) {
       {/* ========================================================================= */}
       {/* BARRA DE PESQUISA E FILTROS                                               */}
       {/* ========================================================================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
         <div className="flex flex-wrap items-center gap-2 flex-1">
-          <div className="relative min-w-[200px] flex-1 max-w-sm">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <div className="flex min-w-[200px] max-w-sm flex-1 items-center overflow-hidden rounded-lg border border-slate-300 bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
+            <span className="flex shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 py-2">
+              <Search className="h-4 w-4 text-slate-500" aria-hidden="true" />
+            </span>
             <input
-              className="input pl-9"
+              className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-500"
               placeholder={`Pesquisar ${t.title.toLowerCase()} por descrição...`}
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -689,7 +865,10 @@ export function TransactionsView({ kind }: { kind: Kind }) {
         </div>
 
         <div className="text-sm text-slate-600 font-medium">
-          Total listado: <strong className={`text-base ${t.color}`}>{formatBRL(financialHealth.totalList)}</strong>
+          Total listado:{" "}
+          <strong className={`text-base ${t.color}`}>
+            {formatBRL(financialHealth.totalList)}
+          </strong>
         </div>
       </div>
 
@@ -725,9 +904,12 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               {!loading && items.length === 0 && (
                 <tr>
                   <td colSpan={7} className="p-12 text-center text-slate-500">
-                    <p className="font-medium text-slate-700">Nenhum lançamento encontrado.</p>
+                    <p className="font-medium text-slate-700">
+                      Nenhum lançamento encontrado.
+                    </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Adicione uma nova {t.singular} acima para começar a controlar seus gastos.
+                      Adicione uma nova {t.singular} acima para começar a
+                      controlar seus gastos.
                     </p>
                   </td>
                 </tr>
@@ -746,7 +928,10 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                       onClick={() => setViewTx(i)}
                     >
                       {/* Badge / Marcação de Situação */}
-                      <td className="py-3 pl-4 pr-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="py-3 pl-4 pr-3 whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {isPaid && (
                           <button
                             title="Clique para desmarcar (voltar a pendente)"
@@ -784,7 +969,11 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                       <td className="px-3 py-3 font-semibold text-slate-900">
                         <div className="flex flex-col">
                           <span>{i.description}</span>
-                          {i.notes && <span className="text-[11px] font-normal text-slate-400 line-clamp-1">{i.notes}</span>}
+                          {i.notes && (
+                            <span className="text-[11px] font-normal text-slate-400 line-clamp-1">
+                              {i.notes}
+                            </span>
+                          )}
                         </div>
                       </td>
 
@@ -793,7 +982,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                         {i.category ? (
                           <span
                             className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium text-white shadow-xs"
-                            style={{ backgroundColor: i.category.color ?? "#64748b" }}
+                            style={{
+                              backgroundColor: i.category.color ?? "#64748b",
+                            }}
                           >
                             <Tag className="h-3 w-3 opacity-80" />
                             {i.category.name}
@@ -812,12 +1003,17 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                       </td>
 
                       {/* Valor */}
-                      <td className={`px-3 py-3 text-right font-bold whitespace-nowrap ${isCancelled ? "text-slate-400 line-through" : t.color}`}>
+                      <td
+                        className={`px-3 py-3 text-right font-bold whitespace-nowrap ${isCancelled ? "text-slate-400 line-through" : t.color}`}
+                      >
                         {formatBRL(i.amount)}
                       </td>
 
                       {/* Ações (Visualizar, Marcar Paga, Editar, Cancelar) */}
-                      <td className="py-3 pl-3 pr-4 whitespace-nowrap text-center" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="py-3 pl-3 pr-4 whitespace-nowrap text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center justify-center gap-1">
                           {/* Visualizar */}
                           <button
@@ -887,13 +1083,17 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Detalhes do Lançamento
               </span>
-              <h3 className="text-xl font-bold text-slate-900">{viewTx.description}</h3>
+              <h3 className="text-xl font-bold text-slate-900">
+                {viewTx.description}
+              </h3>
             </div>
 
             {/* Valor em destaque */}
             <div className="my-5 rounded-xl bg-slate-50 p-4 text-center border border-slate-100">
               <p className="text-xs font-medium text-slate-500">Valor Total</p>
-              <p className={`text-3xl font-black ${viewTx.status === "CANCELLED" ? "text-slate-400 line-through" : t.color}`}>
+              <p
+                className={`text-3xl font-black ${viewTx.status === "CANCELLED" ? "text-slate-400 line-through" : t.color}`}
+              >
                 {formatBRL(viewTx.amount)}
               </p>
               <div className="mt-2 flex justify-center">
@@ -923,7 +1123,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                   {viewTx.category ? (
                     <span
                       className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold text-white"
-                      style={{ backgroundColor: viewTx.category.color ?? "#64748b" }}
+                      style={{
+                        backgroundColor: viewTx.category.color ?? "#64748b",
+                      }}
                     >
                       <Tag className="h-3 w-3" />
                       {viewTx.category.name}
@@ -943,7 +1145,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               </div>
 
               <div className="space-y-1">
-                <span className="text-xs text-slate-500">Data da Compra / Lançamento</span>
+                <span className="text-xs text-slate-500">
+                  Data da Compra / Lançamento
+                </span>
                 <p className="font-medium text-slate-800 flex items-center gap-1">
                   <Calendar className="h-4 w-4 text-slate-400" />
                   {formatDateBR(viewTx.transactionDate)}
@@ -954,21 +1158,29 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                 <span className="text-xs text-slate-500">Vencimento</span>
                 <p className="font-medium text-slate-800 flex items-center gap-1">
                   <Clock className="h-4 w-4 text-slate-400" />
-                  {viewTx.dueDate ? formatDateBR(viewTx.dueDate) : "Não informado"}
+                  {viewTx.dueDate
+                    ? formatDateBR(viewTx.dueDate)
+                    : "Não informado"}
                 </p>
               </div>
 
               {viewTx.paidAt && (
                 <div className="col-span-2 space-y-1 rounded-lg bg-emerald-50/60 p-2 border border-emerald-100">
-                  <span className="text-xs font-medium text-emerald-800">Data em que foi paga:</span>
-                  <p className="text-xs font-bold text-emerald-900">{formatDateBR(viewTx.paidAt)}</p>
+                  <span className="text-xs font-medium text-emerald-800">
+                    Data em que foi paga:
+                  </span>
+                  <p className="text-xs font-bold text-emerald-900">
+                    {formatDateBR(viewTx.paidAt)}
+                  </p>
                 </div>
               )}
 
               {viewTx.notes && (
                 <div className="col-span-2 space-y-1 border-t pt-2">
                   <span className="text-xs text-slate-500">Observações</span>
-                  <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded-lg">{viewTx.notes}</p>
+                  <p className="text-xs text-slate-700 bg-slate-50 p-2 rounded-lg">
+                    {viewTx.notes}
+                  </p>
                 </div>
               )}
             </div>
@@ -1038,17 +1250,28 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                 <Pencil className="h-5 w-5 text-amber-600" />
                 Editar Lançamento
               </h3>
-              <p className="text-xs text-slate-500">Altere os dados da transação abaixo</p>
+              <p className="text-xs text-slate-500">
+                Altere os dados da transação abaixo
+              </p>
             </div>
 
-            <form onSubmit={handleSubmitEdit(onSubmitEdit)} className="space-y-3.5">
+            <form
+              onSubmit={handleSubmitEdit(onSubmitEdit)}
+              className="space-y-3.5"
+            >
               <div>
                 <label className="label">Descrição</label>
                 <input
                   className="input font-medium"
-                  {...registerEdit("description", { required: "Descrição é obrigatória" })}
+                  {...registerEdit("description", {
+                    required: "Descrição é obrigatória",
+                  })}
                 />
-                {editErrors.description && <p className="text-xs text-red-600">{editErrors.description.message}</p>}
+                {editErrors.description && (
+                  <p className="text-xs text-red-600">
+                    {editErrors.description.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1056,14 +1279,23 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                   <label className="label">Valor (R$)</label>
                   <input
                     className="input font-bold text-slate-900"
-                    {...registerEdit("amount", { required: "Valor é obrigatório" })}
+                    {...registerEdit("amount", {
+                      required: "Valor é obrigatório",
+                    })}
                   />
-                  {editErrors.amount && <p className="text-xs text-red-600">{editErrors.amount.message}</p>}
+                  {editErrors.amount && (
+                    <p className="text-xs text-red-600">
+                      {editErrors.amount.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="label">Situação</label>
-                  <select className="input font-medium" {...registerEdit("status")}>
+                  <select
+                    className="input font-medium"
+                    {...registerEdit("status")}
+                  >
                     <option value="PENDING">⏳ {t.pending}</option>
                     <option value="PAID">✔ {t.paid}</option>
                     <option value="CANCELLED">✖ Cancelada</option>
@@ -1074,7 +1306,12 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Conta</label>
-                  <select className="input" {...registerEdit("accountId", { required: "Selecione a conta" })}>
+                  <select
+                    className="input"
+                    {...registerEdit("accountId", {
+                      required: "Selecione a conta",
+                    })}
+                  >
                     <option value="">Selecione…</option>
                     {accounts.map((a) => (
                       <option key={a.id} value={a.id}>
@@ -1082,7 +1319,11 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                       </option>
                     ))}
                   </select>
-                  {editErrors.accountId && <p className="text-xs text-red-600">{editErrors.accountId.message}</p>}
+                  {editErrors.accountId && (
+                    <p className="text-xs text-red-600">
+                      {editErrors.accountId.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1103,17 +1344,29 @@ export function TransactionsView({ kind }: { kind: Kind }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Data da Compra</label>
-                  <input type="date" className="input" {...registerEdit("transactionDate", { required: true })} />
+                  <input
+                    type="date"
+                    className="input"
+                    {...registerEdit("transactionDate", { required: true })}
+                  />
                 </div>
                 <div>
                   <label className="label">Vencimento</label>
-                  <input type="date" className="input" {...registerEdit("dueDate")} />
+                  <input
+                    type="date"
+                    className="input"
+                    {...registerEdit("dueDate")}
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="label">Observações</label>
-                <input className="input text-xs" placeholder="Notas sobre este lançamento" {...registerEdit("notes")} />
+                <input
+                  className="input text-xs"
+                  placeholder="Notas sobre este lançamento"
+                  {...registerEdit("notes")}
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t">
@@ -1130,7 +1383,9 @@ export function TransactionsView({ kind }: { kind: Kind }) {
                   className="btn bg-blue-600 hover:bg-blue-700 text-xs font-semibold"
                   disabled={editLoading || isEditSubmitting}
                 >
-                  {editLoading || isEditSubmitting ? "Salvando…" : "Salvar Alterações"}
+                  {editLoading || isEditSubmitting
+                    ? "Salvando…"
+                    : "Salvar Alterações"}
                 </button>
               </div>
             </form>
