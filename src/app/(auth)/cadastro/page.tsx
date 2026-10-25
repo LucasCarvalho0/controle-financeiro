@@ -151,7 +151,7 @@ export default function CadastroPage() {
               placeholder="Ex: João da Silva"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="input pl-9 font-medium"
+              className="input !pl-9 font-medium"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function CadastroPage() {
                 placeholder="000.000.000-00"
                 value={cpf}
                 onChange={(e) => handleCpfChange(e.target.value)}
-                className="input pl-9 font-medium"
+                className="input !pl-9 font-medium"
               />
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function CadastroPage() {
                 placeholder="(00) 00000-0000"
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                className="input pl-9 font-medium"
+                className="input !pl-9 font-medium"
               />
             </div>
           </div>
@@ -211,7 +211,7 @@ export default function CadastroPage() {
               placeholder="seuemail@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input pl-9 font-medium"
+              className="input !pl-9 font-medium"
             />
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function CadastroPage() {
               placeholder="Digite uma senha forte"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input pl-9 pr-10 font-medium"
+              className="input !pl-9 !pr-10 font-medium"
             />
             <button
               type="button"
@@ -263,7 +263,7 @@ export default function CadastroPage() {
               placeholder="Repita a mesma senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="input pl-9 pr-10 font-medium"
+              className="input !pl-9 !pr-10 font-medium"
             />
             <button
               type="button"
