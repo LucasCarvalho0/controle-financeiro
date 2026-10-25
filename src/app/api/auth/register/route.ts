@@ -28,12 +28,13 @@ export async function POST(req: Request) {
         passwordHash,
         cpf: input.cpf || null,
         phone: input.phone || null,
+        image: input.image || null,
       },
     });
 
     await ensureDefaultCategories(user.id);
 
-    return NextResponse.json({ ok: true, user: { id: user.id, name: user.name, email: user.email } }, { status: 201 });
+    return NextResponse.json({ ok: true, user: { id: user.id, name: user.name, email: user.email, image: user.image } }, { status: 201 });
   } catch (e) {
     return errorResponse(e);
   }

@@ -57,4 +57,5 @@ export const registerSchema = z.object({
   cpf: z.string().trim().optional().nullable(),
   phone: z.string().trim().optional().nullable(),
   password: z.string().min(8, "Mínimo de 8 caracteres").max(128),
+  image: z.string().optional().nullable(),
 });

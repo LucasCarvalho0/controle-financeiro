@@ -28,7 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        return ok ? { id: user.id, email: user.email, name: user.name } : null;
+        return ok ? { id: user.id, email: user.email, name: user.name, image: user.image } : null;
       },
     }),
   ],
@@ -37,7 +37,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async createUser({ user }) { if (user.id) await ensureDefaultCategories(user.id); },
   },
   callbacks: {
-    jwt({ token, user }) { if (user?.id) token.sub = user.id; return token; },
-    session({ session, token }) { if (token.sub) session.user.id = token.sub; return session; },
+    jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.sub = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = (user as { image?: string | null }).image;
+      }
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name;
+        if (session.image) token.picture = session.image;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      if (token.sub) session.user.id = token.sub;
+      if (token.name) session.user.name = token.name;
+      if (token.picture) session.user.image = token.picture as string;
+      return session;
+    },
   },
 });

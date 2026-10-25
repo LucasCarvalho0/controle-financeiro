@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import {
@@ -14,6 +15,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  Camera,
+  X,
 } from "lucide-react";
 
 export default function CadastroPage() {
@@ -23,12 +26,61 @@ export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [image, setImage] = useState<string | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Compressão e preview da foto de perfil selecionada
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Por favor, selecione um arquivo de imagem válido (JPG ou PNG).");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const rawBase64 = event.target?.result as string;
+      const img = new window.Image();
+      img.src = rawBase64;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = 380;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > size) {
+            height = Math.round((height * size) / width);
+            width = size;
+          }
+        } else {
+          if (height > size) {
+            width = Math.round((width * size) / height);
+            height = size;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const optimized = canvas.toDataURL("image/jpeg", 0.85);
+          setImage(optimized);
+          setError(null);
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  }
 
   // Máscara dinâmica de CPF (000.000.000-00)
   function handleCpfChange(val: string) {
@@ -86,6 +138,7 @@ export default function CadastroPage() {
         phone: phone.trim() || undefined,
         email: cleanEmail,
         password,
+        image: image || undefined,
       };
 
       const res = await fetch("/api/auth/register", {
@@ -123,10 +176,8 @@ export default function CadastroPage() {
       });
 
       if (authRes?.error) {
-        // Se houve erro no auto-login, redireciona para login com o e-mail pré-preenchido
         window.location.href = "/login";
       } else {
-        // Sucesso: entra direto no dashboard!
         window.location.href = "/dashboard";
       }
     } catch {
@@ -136,15 +187,80 @@ export default function CadastroPage() {
   }
 
   return (
-    <main className="mx-auto mt-8 mb-12 max-w-md px-4">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Criar sua Conta</h1>
+    <main className="mx-auto mt-6 mb-12 max-w-md px-4">
+      {/* Logo e Cabeçalho Oficial */}
+      <div className="mb-6 text-center flex flex-col items-center">
+        <div className="relative mb-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 p-1 shadow-lg shadow-blue-500/20 ring-4 ring-blue-50">
+          <Image
+            src="/icons/icon.png"
+            alt="Logo Controle Pro"
+            width={56}
+            height={56}
+            className="h-full w-full object-cover rounded-xl"
+            priority
+          />
+        </div>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+          Criar sua <span className="text-blue-600">Conta</span>
+        </h1>
         <p className="mt-1 text-xs text-slate-500">
           Preencha seus dados para ter acesso exclusivo ao seu controle financeiro.
         </p>
       </div>
 
-      <form onSubmit={onSubmit} className="card space-y-4 shadow-sm border-slate-200">
+      <form onSubmit={onSubmit} className="card space-y-4 shadow-md border-slate-200/90 bg-white/95 backdrop-blur p-6 rounded-2xl">
+        {/* Upload de Foto de Perfil */}
+        <div className="flex flex-col items-center pb-2">
+          <label className="text-xs font-semibold text-slate-700 mb-2">
+            Sua Foto de Perfil (Opcional)
+          </label>
+          <div className="relative group">
+            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-blue-500 bg-slate-50 shadow-inner">
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={image} alt="Foto de perfil preview" className="h-full w-full object-cover" />
+              ) : (
+                <User className="h-9 w-9 text-slate-400" />
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
+              title="Escolher foto"
+            >
+              <Camera size={14} />
+            </button>
+
+            {image && (
+              <button
+                type="button"
+                onClick={() => setImage(null)}
+                className="absolute top-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white shadow-md hover:bg-rose-600 transition-colors"
+                title="Remover foto"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-2 text-[11px] font-semibold text-blue-600 hover:underline"
+          >
+            {image ? "Trocar foto selecionada" : "Clique para escolher uma foto"}
+          </button>
+        </div>
         {/* Nome Completo */}
         <div>
           <label className="label" htmlFor="name">
