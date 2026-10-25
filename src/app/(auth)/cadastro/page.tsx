@@ -97,6 +97,7 @@ export default function CadastroPage() {
       if (!res.ok) {
         const j = await res.json().catch(() => null);
         const errorMsg =
+          j?.error?.issues?.[0]?.message ||
           j?.error?.message ||
           j?.message ||
           (res.status === 409
