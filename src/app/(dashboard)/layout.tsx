@@ -5,7 +5,11 @@ import { isUserAdmin } from "@/lib/admin";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const isAdmin = isUserAdmin(session.user.email);
@@ -19,6 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       image: true,
       cpf: true,
       phone: true,
+      timezone: true,
     },
   });
 
@@ -29,6 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     image: dbUser?.image ?? session.user.image ?? null,
     cpf: dbUser?.cpf ?? null,
     phone: dbUser?.phone ?? null,
+    timezone: dbUser?.timezone ?? "America/Sao_Paulo",
   };
 
   return (

@@ -2,8 +2,7 @@
 
 Next.js 15 (App Router) · TypeScript estrito · Tailwind · Prisma · PostgreSQL · Auth.js v5 · Recharts · Vitest · Playwright.
 
-> **Estado: Fase 1 (fundação) + parte da Fase 2.** Veja “Limitações” no fim. Nada aqui foi executado ainda
-> (o ambiente de geração não tinha acesso à internet para `npm install`). Rode os comandos abaixo e corrija o que aparecer.
+> **Estado: fundação + funcionalidades financeiras e notificações internas.** Veja “Limitações” no fim para os itens ainda pendentes.
 
 ## Como iniciar
 
@@ -19,13 +18,14 @@ npm run test:e2e              # Playwright (app + banco rodando; rode `npx playw
 
 ## Variáveis de ambiente
 
-| Variável                                 | Como obter                                                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `DATABASE_URL`, `DIRECT_URL`             | Crie um projeto no Supabase/Neon e copie as strings de conexão (a direta é usada nas migrações).                   |
-| `AUTH_SECRET`                            | `npx auth secret` ou `openssl rand -base64 32`                                                                     |
-| `NEXT_PUBLIC_FIREBASE_*`                 | Firebase Console → Configurações do projeto → Seus apps → configuração do SDK Web.                                 |
-| `RESEND_API_KEY`, `EMAIL_FROM`           | resend.com → API Keys; verifique seu domínio. (Ainda não usado: recuperação de senha é Fase 1 pendente.)           |
-| `NEXT_PUBLIC_API_KEY`, `API_PRIVATE_KEY` | Chaves públicas e privadas para integrações de API; mantenha a pública em cliente e a privada somente no servidor. |
+| Variável                                 | Como obter                                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`, `DIRECT_URL`             | Crie um projeto no Supabase/Neon e copie as strings de conexão (a direta é usada nas migrações).                                      |
+| `AUTH_SECRET`                            | `npx auth secret` ou `openssl rand -base64 32`                                                                                        |
+| `CRON_SECRET`                            | Gere com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`; configure no `.env` e na Vercel como Production. |
+| `NEXT_PUBLIC_FIREBASE_*`                 | Firebase Console → Configurações do projeto → Seus apps → configuração do SDK Web.                                                    |
+| `RESEND_API_KEY`, `EMAIL_FROM`           | resend.com → API Keys; verifique seu domínio. (Ainda não usado: recuperação de senha é Fase 1 pendente.)                              |
+| `NEXT_PUBLIC_API_KEY`, `API_PRIVATE_KEY` | Chaves públicas e privadas para integrações de API; mantenha a pública em cliente e a privada somente no servidor.                    |
 
 ## Publicação na Vercel
 
@@ -33,6 +33,30 @@ npm run test:e2e              # Playwright (app + banco rodando; rode `npx playw
 2. Cadastre as variáveis acima. Defina `AUTH_URL` com a URL pública.
 3. Aplique migrações em produção: `npx prisma migrate deploy` (nunca rode o seed em produção).
 4. O script `build` já executa `prisma generate`.
+
+## Notificações de vencimento
+
+O cron diário em `vercel.json` chama `GET /api/cron/notifications` às 11:00 UTC (aproximadamente entre 08:00 e 08:59 em `America/Sao_Paulo`). O Hobby permite uma execução por dia e pode variar até 59 minutos; o Pro permite frequência maior. Cron é executado somente em Production.
+
+Configure `CRON_SECRET` com pelo menos 32 caracteres no `.env` local e em **Vercel → Project → Settings → Environment Variables → Production**. Use o mesmo segredo em ambos os ambientes e não o versiona. Gere-o com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Depois de alterar a variável ou `vercel.json`, faça um novo deploy de produção.
+
+Para testar localmente, inicie o app e invoque a rota com o segredo:
+
+```bash
+curl -i http://localhost:3000/api/cron/notifications \
+	-H "Authorization: Bearer $CRON_SECRET"
+```
+
+No PowerShell, use:
+
+```powershell
+$headers = @{ Authorization = "Bearer $env:CRON_SECRET" }
+Invoke-RestMethod -Method Get -Uri "http://localhost:3000/api/cron/notifications" -Headers $headers
+```
+
+A execução retorna `checked`, `created`, `duplicates` e `errors`; se houver falhas, responde `207` e indica `success: false`. Para confirmar o agendamento após o deploy, abra **Vercel → Project → Settings → Cron Jobs** e use **View Logs**. A Vercel não repete automaticamente uma invocação que falhou.
+
+As chaves de deduplicação incluem a data do vencimento (`transaction:{id}:{type}:{dueDate}`). Alterar o vencimento gera chaves novas sem apagar notificações anteriores; voltar para uma data já notificada não duplica aquele lembrete. O cron cria somente notificações internas; email e push não fazem parte desta fase.
 
 ## Regras financeiras (fonte única: `src/domain/finance`)
 
@@ -54,12 +78,11 @@ cabeçalhos de segurança · erros sem stack trace.
 ## API (implementada)
 
 `GET/POST /api/transactions` · `PATCH /api/transactions/:id` (`{action:"pay"|"cancel"}`) · `GET /api/dashboard?periodo=mes-atual|mes-anterior|ano-atual` ·
-`GET/POST /api/accounts` · `GET /api/categories` · `POST /api/auth/register`.
+`GET/POST /api/accounts` · `GET /api/categories` · `POST /api/auth/register` · `GET /api/notifications` · `GET /api/notifications/unread-count` · `PATCH /api/notifications/:id/read` · `PATCH /api/notifications/read-all` · `GET /api/cron/notifications`.
 
 ## Limitações conhecidas / pendências
 
-- **Não testado/executado ainda.** Pode haver erros de tipo/compilação a ajustar no primeiro `npm run typecheck`.
-- Faltam: recuperação/redefinição de senha e e-mail (Resend), edição de transações, transferências (UI/serviço), contas a pagar, recorrências, cartões e faturas (só o schema existe), orçamentos, metas, investimentos, assistente, relatórios/exportação, importação da planilha `Controle-2026(2).xlsx` (a planilha não foi fornecida), notificações, PWA offline/service worker e ícones PNG (gere `icon-192.png`/`icon-512.png` de `public/icons/icon.svg`).
+- Faltam: recuperação/redefinição de senha e e-mail (Resend), transferências (UI/serviço), recorrências, cartões e faturas (só o schema existe), orçamentos, metas, investimentos, assistente, relatórios/exportação, importação da planilha `Controle-2026(2).xlsx` (a planilha não foi fornecida), envio de notificações por email/push, PWA offline/service worker e ícones PNG (gere `icon-192.png`/`icon-512.png` de `public/icons/icon.svg`).
 - shadcn/ui, TanStack Table não foram instalados; a UI usa Tailwind puro por ora.
 - Rate limit em memória (insuficiente em serverless; usar Redis/DB em produção).
 - Dashboard carrega todas as transações do usuário para calcular; trocar por agregações SQL quando o volume crescer.
