@@ -58,6 +58,12 @@ A execução retorna `checked`, `created`, `duplicates` e `errors`; se houver fa
 
 As chaves de deduplicação incluem a data do vencimento (`transaction:{id}:{type}:{dueDate}`). Alterar o vencimento gera chaves novas sem apagar notificações anteriores; voltar para uma data já notificada não duplica aquele lembrete. O cron cria somente notificações internas; email e push não fazem parte desta fase.
 
+## Instalar como PWA
+
+O app exige HTTPS em produção (localhost é aceito para desenvolvimento). Em Android/Chrome, use o botão **Instalar** quando o navegador oferecer o prompt; se ele não aparecer, abra o menu do navegador e escolha **Instalar app** ou **Adicionar à tela inicial**. No iPhone/iPad, abra o endereço no Safari, toque em **Compartilhar → Adicionar à Tela de Início → Adicionar**; o iOS não oferece prompt de instalação automático. Em desktop compatível, use o ícone de instalação na barra de endereço ou o menu do navegador.
+
+O service worker mantém somente o shell, arquivos estáticos e a página offline. Dados financeiros e APIs não são armazenados em cache e precisam de conexão; esta PWA não oferece sincronização offline nem notificações push.
+
 ## Regras financeiras (fonte única: `src/domain/finance`)
 
 - **Duas visões separadas**: _competência_ (resultado) e _caixa_ (saldos).
@@ -82,7 +88,7 @@ cabeçalhos de segurança · erros sem stack trace.
 
 ## Limitações conhecidas / pendências
 
-- Faltam: recuperação/redefinição de senha e e-mail (Resend), transferências (UI/serviço), recorrências, cartões e faturas (só o schema existe), orçamentos, metas, investimentos, assistente, relatórios/exportação, importação da planilha `Controle-2026(2).xlsx` (a planilha não foi fornecida), envio de notificações por email/push, PWA offline/service worker e ícones PNG (gere `icon-192.png`/`icon-512.png` de `public/icons/icon.svg`).
+- Faltam: recuperação/redefinição de senha e e-mail (Resend), transferências (UI/serviço), recorrências, cartões e faturas (só o schema existe), orçamentos, metas, investimentos, assistente, relatórios/exportação, importação da planilha `Controle-2026(2).xlsx` (a planilha não foi fornecida), envio de notificações por email/push e sincronização financeira offline.
 - shadcn/ui, TanStack Table não foram instalados; a UI usa Tailwind puro por ora.
 - Rate limit em memória (insuficiente em serverless; usar Redis/DB em produção).
 - Dashboard carrega todas as transações do usuário para calcular; trocar por agregações SQL quando o volume crescer.

@@ -347,9 +347,9 @@ export function TopBar({ user, isAdmin }: TopBarProps) {
               <section
                 role="dialog"
                 aria-label="Notificações financeiras"
-                className="absolute right-0 top-full z-50 mt-3 flex max-h-[min(70vh,36rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+                className="fixed right-4 top-[calc(env(safe-area-inset-top)+5rem)] z-50 flex max-h-[calc(100dvh-6rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden overscroll-contain rounded-xl border border-slate-200 bg-white shadow-xl md:right-8"
               >
-                <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                <div className="flex flex-col items-start gap-2 border-b border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div>
                     <h2 className="text-sm font-semibold text-slate-900">
                       Notificações
@@ -362,7 +362,7 @@ export function TopBar({ user, isAdmin }: TopBarProps) {
                     type="button"
                     onClick={markAllNotificationsRead}
                     disabled={unreadCount === 0 || notificationAction !== null}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-slate-400"
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:text-slate-400"
                   >
                     <CheckCheck className="h-4 w-4" aria-hidden="true" />
                     Marcar todas como lidas
